@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ctx-tool"
+version = "0.1.0"
+description = "CLI to generate LLM context from codebases for auditing"
+authors = [{name = "Your Name", email = "your@email.com"}]
+dependencies = [
+    "pathspec"
+]
+requires-python = ">=3.8"
+
+[project.scripts]
+ctx = "ctx.main:run"

@@ -1,0 +1,33 @@
+# --- Python Standard ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Virtual Environments
+env/
+venv/
+.venv/
+
+# Build & Distribution Artifacts
+build/
+dist/
+wheels/
+*.egg
+
+# --- Nix Artifacts ---
+# 'nix build' creates a symlink named 'result' in the root
+result
+result-*
+
+# --- IDE & OS ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# --- AI & Tools ---
+# Don't commit your chat history with Aider
+.aider*
