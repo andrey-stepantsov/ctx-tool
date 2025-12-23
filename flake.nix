@@ -20,13 +20,20 @@
           
           nativeBuildInputs = [ python.pkgs.setuptools python.pkgs.wheel ];
           propagatedBuildInputs = [ python.pkgs.pathspec ];
+
+          # --- FIX IS HERE ---
+          # Tell Nix the actual binary name is 'ctx', not 'ctx-tool'
+          meta.mainProgram = "ctx"; 
         };
       in
       {
         packages.default = ctx-app;
-        
+
         apps.default = flake-utils.lib.mkApp {
           drv = ctx-app;
+          # --- OPTIONAL SAFETY ---
+          # Explicitly pointing to the binary name helps flake-utils too
+          name = "ctx"; 
         };
 
         devShells.default = pkgs.mkShell {
