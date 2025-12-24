@@ -17,6 +17,40 @@ DEFAULT_IGNORES = [
 # We deliberately ignore <system_headers> to save tokens.
 INCLUDE_PATTERN = re.compile(r'^\s*#include\s+"([^"]+)"')
 
+# --- DOCUMENTATION ---
+MANUAL_TEXT = """
+ctx: LLM Context Generator (v0.1.0)
+===================================
+
+DESCRIPTION
+    ctx packages your codebase into a format optimized for LLM auditing.
+    It produces a Multi-Document YAML stream that preserves file names
+    and content in a way that is easy for AI models to parse.
+
+USAGE
+    1. Audit the current directory (Recursive)
+       $ ctx . | pbcopy
+
+    2. Trace specific C/C++ files (Follows #include)
+       $ ctx src/main.c --deep
+
+    3. Mixed Mode (Files + Directories)
+       $ ctx src/main.c src/experimental/ --deep
+
+ADVANCED USAGE
+    [External SDKs / PDKs]
+    ctx automatically resolves relative includes (e.g., "../pdk/defs.h").
+    If you have absolute external dependencies, list them explicitly:
+    
+       $ ctx src/main.c /opt/sdk/critical_def.h --deep
+
+OPTIONS
+    inputs      Files or directories to scan (Default: current dir)
+    --deep      Recursively follow C/C++ #include directives
+    --doc       Print this manual
+    --help      Print short usage summary
+"""
+
 def load_gitignore(root_dir):
     """Loads .gitignore patterns and adds internal defaults."""
     gitignore_path = os.path.join(root_dir, ".gitignore")
@@ -86,21 +120,12 @@ def generate_tree_from_list(file_list, root_dir):
         return ""
 
     tree_lines = []
-    # Simple hierarchy builder
     for path in rel_paths:
         parts = path.split(os.sep)
-        indent = 0
         for i, part in enumerate(parts):
-            # Only print the leaf (file) with full indentation
-            # Directories are implied by the structure, but simpler to just list flat-ish for context
             if i == len(parts) - 1:
                 tree_lines.append("  " * i + part)
-            else:
-                pass 
                 
-    # A robust tree requires building a nested dict, but for this tool, 
-    # a sorted list with indentation is usually 90% as effective and cheaper on tokens.
-    # Let's do a pure sorted list with indentation for visual hierarchy.
     formatted_tree = []
     for path in rel_paths:
         depth = path.count(os.sep)
@@ -113,7 +138,13 @@ def run():
     parser = argparse.ArgumentParser(description="Pack code into LLM-ready context.")
     parser.add_argument("inputs", nargs="*", default=["."], help="Files or directories to scan")
     parser.add_argument("--deep", action="store_true", help="Recursively follow #include directives")
+    parser.add_argument("--doc", action="store_true", help="Print advanced documentation")
     args = parser.parse_args()
+
+    # --- HANDLE DOC FLAG ---
+    if args.doc:
+        print(MANUAL_TEXT)
+        sys.exit(0)
 
     # Determine root based on the first argument or cwd
     first_input = os.path.abspath(args.inputs[0])
@@ -127,7 +158,7 @@ def run():
     # 1. Build Initial Work Queue
     queue = []
     processed_paths = set()
-    final_files = [] # List of (rel_path, content) tuples
+    final_files = [] 
 
     # Populate queue
     for inp in args.inputs:
@@ -136,11 +167,8 @@ def run():
         if os.path.isfile(abs_inp):
             queue.append(abs_inp)
         elif os.path.isdir(abs_inp):
-            # If dir, walk it and add all valid files
             for r, dirs, files in os.walk(abs_inp):
-                # Filter dirs in-place for ignore logic
                 dirs[:] = [d for d in dirs if not spec.match_file(os.path.relpath(os.path.join(r, d), root_dir))]
-                
                 for f in files:
                     full_path = os.path.join(r, f)
                     queue.append(full_path)
@@ -154,7 +182,6 @@ def run():
             
         processed_paths.add(current_path)
         
-        # Validation Checks
         rel_path = os.path.relpath(current_path, root_dir)
         
         if spec.match_file(rel_path):
@@ -170,12 +197,9 @@ def run():
             if not content.strip():
                 continue
                 
-            # Add to results
             final_files.append((rel_path, content))
             
-            # Feature: Deep Scan
             if args.deep:
-                # If it's a C/C++ file, look for includes
                 if current_path.endswith(('.c', '.cpp', '.h', '.hpp', '.cc')):
                     new_includes = scan_for_includes(content, current_path, root_dir)
                     for inc in new_includes:
@@ -186,9 +210,8 @@ def run():
             sys.stderr.write(f"Skipping {rel_path}: {e}\n")
 
     # 3. Output Generation
-    final_files.sort(key=lambda x: x[0]) # Sort by path
+    final_files.sort(key=lambda x: x[0]) 
     
-    # Buffer output
     output_buffer = []
     project_name = os.path.basename(root_dir)
     
@@ -196,7 +219,6 @@ def run():
     output_buffer.append("# Context Map:")
     output_buffer.append("project_structure: |")
     
-    # Generate tree from the actual files we found
     files_only_list = [os.path.join(root_dir, f[0]) for f in final_files]
     tree_str = generate_tree_from_list(files_only_list, root_dir)
     indented_tree = "\n".join(["  " + line for line in tree_str.splitlines()])
