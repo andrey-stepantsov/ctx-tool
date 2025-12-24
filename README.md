@@ -95,4 +95,24 @@ content: |
 | **Ecosystem** | Node.js / NPM | **Python / Nix** (Zero-dependency binary) |
 | **Philosophy** | "Pack Everything" | "Trace & Audit" |
 
-Use **Repomix** for generic web projects. Use **ctx** if you need surgical context for C/C++/SystemVerilog or prefer a Nix-native workflow.
+Use **Repomix** for generic web projects. Use **ctx** if you need surgical context for C/C++/SystemVerilog or prefer a Nix-native workflow.## Advanced Usage
+
+### Working with External SDKs / PDKs
+`ctx` is designed to provide complete context, even if dependencies live outside your project root.
+
+1. **Relative Includes (Supported Automatically):**
+   If your code uses relative paths to reach a sibling directory (common in hardware design or monorepos), `ctx` will resolve, bundle, and correctly label them.
+   
+   *Source:* `#include "../pdk/std_defs.h"`
+   *Output:* '''yaml
+   path: ../pdk/std_defs.h
+   content: |
+     ...
+   '''
+
+2. **Explicit External Files:**
+   If you have a critical header in a global location that isn't referenced relatively, you can explicitly add it to the bundle.
+   
+   '''bash
+   ctx src/main.c /opt/sdk/critical_def.h --deep
+   '''
