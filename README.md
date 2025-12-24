@@ -6,7 +6,7 @@ It packages your code into a **Multi-Document YAML** format that is token-effici
 
 ## Features
 
-- **Context-Aware Output:** Generates a file tree map at the top of the output to ground the LLM.
+- **Context-Aware Output:** GGenerates a file tree map at the top of the output to ground the LLM.
 - **Dependency Tracing:** Can heuristically follow C/C++ `#include` directives to bundle related headers automatically.
 - **Smart Filtering:** Strictly obeys `.gitignore` and automatically excludes lockfiles/binaries to save context window.
 - **Token Estimation:** Prints token usage to `stderr` so you know if you fit in the context window.
@@ -104,15 +104,16 @@ Use **Repomix** for generic web projects. Use **ctx** if you need surgical conte
    If your code uses relative paths to reach a sibling directory (common in hardware design or monorepos), `ctx` will resolve, bundle, and correctly label them.
    
    *Source:* `#include "../pdk/std_defs.h"`
-   *Output:* '''yaml
+   *Output:* ```yaml
    path: ../pdk/std_defs.h
    content: |
      ...
-   '''
+   ```
 
 2. **Explicit External Files:**
    If you have a critical header in a global location that isn't referenced relatively, you can explicitly add it to the bundle.
    
-   '''bash
+   ```bash
    ctx src/main.c /opt/sdk/critical_def.h --deep
-   '''
+   ```
+
