@@ -96,9 +96,6 @@ def generate_tree_from_list(file_list, root_dir):
             if i == len(parts) - 1:
                 tree_lines.append("  " * i + part)
             else:
-                # Optional: Add directory markers if you want a fuller tree. 
-                # For LLM context, a simplified list often suffices, 
-                # but let's stick to the visual indentation.
                 pass 
                 
     # A robust tree requires building a nested dict, but for this tool, 

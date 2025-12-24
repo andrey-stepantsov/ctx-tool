@@ -6,11 +6,19 @@ build-backend = "setuptools.build_meta"
 name = "ctx-tool"
 version = "0.1.0"
 description = "CLI to generate LLM context from codebases for auditing"
-authors = [{name = "Your Name", email = "your@email.com"}]
+authors = [{name = "Andrey Stepantsov", email = "your@email.com"}]
 dependencies = [
     "pathspec"
 ]
 requires-python = ">=3.8"
+
+[project.urls]
+Repository = "https://github.com/andrey-stepantsov/ctx-tool"
+
+[project.optional-dependencies]
+test = [
+    "pytest"
+]
 
 [project.scripts]
 ctx = "ctx.main:run"

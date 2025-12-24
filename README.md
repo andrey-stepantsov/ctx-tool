@@ -19,10 +19,10 @@ If you have a Nix-enabled system (macOS/Linux):
 
 ```bash
 # Run directly without installing
-nix run github:yourusername/ctx-tool -- .
+nix run github:andrey-stepantsov/ctx-tool -- .
 
 # Install into your profile
-nix profile install github:yourusername/ctx-tool
+nix profile install github:andrey-stepantsov/ctx-tool
 ```
 
 ### Option 2: Via pipx (Universal)
@@ -33,7 +33,7 @@ Works on any system with Python 3.8+:
 pipx install .
 
 # Or install from git
-pipx install git+[https://github.com/yourusername/ctx-tool.git](https://github.com/yourusername/ctx-tool.git)
+pipx install git+https://github.com/andrey-stepantsov/ctx-tool.git
 ```
 
 ## Usage
@@ -82,7 +82,9 @@ content: |
 path: src/utils.h
 content: |
   void helper();
-```## Comparison with Repomix
+```
+
+## Comparison with Repomix
 
 **[Repomix](https://github.com/yamadashy/repomix)** is a popular Node.js tool for packing codebases. Why use `ctx` instead?
 

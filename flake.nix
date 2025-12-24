@@ -18,11 +18,20 @@
           src = ./.;
           format = "pyproject";
           
+          # Build dependencies
           nativeBuildInputs = [ python.pkgs.setuptools python.pkgs.wheel ];
           propagatedBuildInputs = [ python.pkgs.pathspec ];
 
-          # --- FIX IS HERE ---
-          # Tell Nix the actual binary name is 'ctx', not 'ctx-tool'
+          # --- TEST CONFIGURATION ---
+          # 1. Add pytest to the check inputs
+          nativeCheckInputs = [ python.pkgs.pytest ];
+          
+          # 2. Run pytest in the check phase (ensures reliability before build)
+          checkPhase = ''
+            pytest tests/
+          '';
+
+          # Metadata to help Nix find the binary
           meta.mainProgram = "ctx"; 
         };
       in
@@ -31,13 +40,12 @@
 
         apps.default = flake-utils.lib.mkApp {
           drv = ctx-app;
-          # --- OPTIONAL SAFETY ---
-          # Explicitly pointing to the binary name helps flake-utils too
           name = "ctx"; 
         };
 
+        # Development shell with pytest ready
         devShells.default = pkgs.mkShell {
-          packages = [ python ctx-app ];
+          packages = [ python ctx-app python.pkgs.pytest ];
         };
       }
     );
