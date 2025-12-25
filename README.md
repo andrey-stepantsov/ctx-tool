@@ -6,7 +6,7 @@ It packages your code into a **Multi-Document YAML** format that is token-effici
 
 ## Features
 
-- **Context-Aware Output:** GGenerates a file tree map at the top of the output to ground the LLM.
+- **Context-Aware Output:** Generates a file tree map at the top of the output to ground the LLM.
 - **Dependency Tracing:** Can heuristically follow C/C++ `#include` directives to bundle related headers automatically.
 - **Smart Filtering:** Strictly obeys `.gitignore` and automatically excludes lockfiles/binaries to save context window.
 - **Token Estimation:** Prints token usage to `stderr` so you know if you fit in the context window.
@@ -61,6 +61,50 @@ You can combine explicit files and directories.
 ctx src/main.c src/experimental/ --deep
 ```
 
+### 4. View Embedded Manual
+Print the comprehensive help guide directly in the terminal.
+
+```bash
+ctx --doc
+```
+
+## Advanced Usage
+
+### Ignoring Files (The `.ctxignore` file)
+Sometimes you want to keep files in Git (like assets, images, or large JSON data) but exclude them from the LLM context to save tokens.
+
+1. Create a `.ctxignore` file in your project root.
+2. Add patterns (same syntax as `.gitignore`).
+
+```text
+# Example .ctxignore
+public/
+assets/
+*.json
+```
+
+`ctx` will now ignore these files during the audit, even if they are tracked by Git.
+
+### Working with External SDKs / PDKs
+`ctx` is designed to provide complete context, even if dependencies live outside your project root.
+
+1. **Relative Includes (Supported Automatically):**
+   If your code uses relative paths to reach a sibling directory (common in hardware design or monorepos), `ctx` will resolve, bundle, and correctly label them.
+   
+   *Source:* `#include "../pdk/std_defs.h"`
+   *Output:* '''yaml
+   path: ../pdk/std_defs.h
+   content: |
+     ...
+   '''
+
+2. **Explicit External Files:**
+   If you have a critical header in a global location that isn't referenced relatively, you can explicitly add it to the bundle.
+   
+   '''bash
+   ctx src/main.c /opt/sdk/critical_def.h --deep
+   '''
+
 ## Output Format
 
 The tool produces a single YAML stream designed for machine reading:
@@ -95,25 +139,4 @@ content: |
 | **Ecosystem** | Node.js / NPM | **Python / Nix** (Zero-dependency binary) |
 | **Philosophy** | "Pack Everything" | "Trace & Audit" |
 
-Use **Repomix** for generic web projects. Use **ctx** if you need surgical context for C/C++/SystemVerilog or prefer a Nix-native workflow.## Advanced Usage
-
-### Working with External SDKs / PDKs
-`ctx` is designed to provide complete context, even if dependencies live outside your project root.
-
-1. **Relative Includes (Supported Automatically):**
-   If your code uses relative paths to reach a sibling directory (common in hardware design or monorepos), `ctx` will resolve, bundle, and correctly label them.
-   
-   *Source:* `#include "../pdk/std_defs.h"`
-   *Output:* ```yaml
-   path: ../pdk/std_defs.h
-   content: |
-     ...
-   ```
-
-2. **Explicit External Files:**
-   If you have a critical header in a global location that isn't referenced relatively, you can explicitly add it to the bundle.
-   
-   ```bash
-   ctx src/main.c /opt/sdk/critical_def.h --deep
-   ```
-
+Use **Repomix** for generic web projects. Use **ctx** if you need surgical context for C/C++/SystemVerilog or prefer a Nix-native workflow.

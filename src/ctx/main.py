@@ -14,12 +14,11 @@ DEFAULT_IGNORES = [
 ]
 
 # Regex for heuristic C/C++ includes: #include "file.h"
-# We deliberately ignore <system_headers> to save tokens.
 INCLUDE_PATTERN = re.compile(r'^\s*#include\s+"([^"]+)"')
 
 # --- DOCUMENTATION ---
 MANUAL_TEXT = """
-ctx: LLM Context Generator (v0.1.0)
+ctx: LLM Context Generator (v0.1.1)
 ===================================
 
 DESCRIPTION
@@ -38,11 +37,13 @@ USAGE
        $ ctx src/main.c src/experimental/ --deep
 
 ADVANCED USAGE
+    [Ignoring Files]
+    ctx respects .gitignore automatically. To exclude files from the audit 
+    WITHOUT excluding them from Git, create a .ctxignore file.
+
     [External SDKs / PDKs]
     ctx automatically resolves relative includes (e.g., "../pdk/defs.h").
-    If you have absolute external dependencies, list them explicitly:
-    
-       $ ctx src/main.c /opt/sdk/critical_def.h --deep
+    If you have absolute external dependencies, list them explicitly.
 
 OPTIONS
     inputs      Files or directories to scan (Default: current dir)
@@ -52,18 +53,28 @@ OPTIONS
 """
 
 def load_gitignore(root_dir):
-    """Loads .gitignore patterns and adds internal defaults."""
-    gitignore_path = os.path.join(root_dir, ".gitignore")
+    """Loads .gitignore AND .ctxignore patterns."""
     lines = []
     
-    # Read user's .gitignore
+    # 1. Load .gitignore
+    gitignore_path = os.path.join(root_dir, ".gitignore")
     if os.path.exists(gitignore_path):
         try:
             with open(gitignore_path, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+                lines.extend(f.readlines())
         except Exception as e:
             sys.stderr.write(f"Warning: Could not read .gitignore: {e}\n")
+
+    # 2. Load .ctxignore (NEW FEATURE)
+    ctxignore_path = os.path.join(root_dir, ".ctxignore")
+    if os.path.exists(ctxignore_path):
+        try:
+            with open(ctxignore_path, "r", encoding="utf-8") as f:
+                lines.extend(f.readlines())
+        except Exception as e:
+            sys.stderr.write(f"Warning: Could not read .ctxignore: {e}\n")
     
+    # 3. Add Defaults
     lines.extend(DEFAULT_IGNORES)
     return pathspec.PathSpec.from_lines('gitwildmatch', lines)
 
